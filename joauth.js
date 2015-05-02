@@ -23,7 +23,7 @@
             }
 
             var uuid = guid();
-            saveToStorageByState(uuid, RESOURCE_KEY, azureAppIdUri);
+            saveToStorageByState(uuid, RESOURCE_KEY, appIdUri);
             saveToStorageByState(uuid, LOCATION_KEY, window.location);
 
             console.log('redirectUri: ' + redirectUri);
