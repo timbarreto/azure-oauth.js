@@ -1,2 +1,2 @@
 # joauth
-A library for using obtaining and using OAuth tokens from JavaScript.
+A JavaScript library for obtaining and caching Azure OAuth access tokens on the browser using the implicit flow.
