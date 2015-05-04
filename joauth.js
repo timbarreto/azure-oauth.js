@@ -92,7 +92,7 @@
             useLocalStorageProp = useLocalStorage;
         }
 
-        joauth.getToken = function (authEndpointUri, appIdUri, clientId, redirectUri) {
+        joauth.getAccessToken = function (authEndpointUri, appIdUri, clientId, redirectUri) {
             console.log('clientId: ' + clientId);
             console.log('redirectUri: ' + redirectUri);
 
