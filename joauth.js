@@ -7,8 +7,10 @@
         var RESOURCE_KEY = 'Resource';
         var LOCATION_KEY = 'Location';
         var EXPIRES_KEY = 'Expires';
-        var useLocalStorageProp = true;
+        var ERROR_KEY = 'Error';
 
+        var useLocalStorageProp = true;
+        
         //private
         var saveToStorage = function (key, value) {
             if (useLocalStorageProp === true) {
@@ -92,6 +94,15 @@
             useLocalStorageProp = useLocalStorage;
         }
 
+        joauth.getError = function () {
+            var error = getFromStorage(ERROR_KEY);
+            if (error === "null") {
+                return null;
+            }
+
+            return error;
+        }
+
         joauth.getAccessToken = function (authEndpointUri, appIdUri, clientId, redirectUri) {
             console.log('clientId: ' + clientId);
             console.log('redirectUri: ' + redirectUri);
@@ -143,19 +154,22 @@
                   console.log('expires: ' + expiresTime);
                   saveToStorage(resource, token);
                   saveToStorage(resource + EXPIRES_KEY, expiresTime.getTime());
+                  
+                  // clear error
+                  saveToStorage(ERROR_KEY, null);
 
                   //revert the window location to what it was before the token request
                   window.location = location;
               } else if (error && state) {
-                  var errorDescription = urlParameterExtraction.queryStringParameters['error_description'];
+                  var resource = getFromStorageByState(state, RESOURCE_KEY);
+                  var errorDescr = urlParameterExtraction.queryStringParameters['error_description'];
 
                   // check for authorizatoin error
                   var location1 = getFromStorageByState(state, LOCATION_KEY);
 
+                  saveToStorage(ERROR_KEY, error + ' ' + errorDescr)
                   console.log('error: ' + error);
-                  console.log('error description:' + errorDescription);
-
-                  throw errorDescription;
+                  console.log('error description:' + errorDescr);
               }
           }
       
