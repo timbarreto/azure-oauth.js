@@ -90,6 +90,15 @@
             this.queryStringParameters = splitQueryString(window.location.hash.substr(1));
         })();
 
+		var getTokenFromStorage = function(appIdUri) {
+			var token = getFromStorage(appIdUri);
+            if (token === "null") {
+                return null;
+            }
+
+            return token;
+		};
+
         //public
         joauth.setUseLocalStorage = function(useLocalStorage) {
             useLocalStorageProp = useLocalStorage;
@@ -103,12 +112,22 @@
 
             return error;
         }
+        
+        joauth.clearError = function () {
+             saveToStorage(ERROR_KEY, null);
+        }
+
 
         joauth.getAccessToken = function (authEndpointUri, appIdUri, clientId, redirectUri) {
             console.log('clientId: ' + clientId);
             console.log('redirectUri: ' + redirectUri);
 
-            var token = getFromStorage(appIdUri);
+			var error = joauth.getError();
+			if (error){
+				return null;
+			}
+			
+            var token = getTokenFromStorage(appIdUri);
             var expireTime = getFromStorage(appIdUri + EXPIRES_KEY);
             if (token) {
                 var time = new Date().getTime();
@@ -160,9 +179,6 @@
                   console.log('expires: ' + expiresTime);
                   saveToStorage(resource, token);
                   saveToStorage(resource + EXPIRES_KEY, expiresTime.getTime());
-                  
-                  // clear error
-                  saveToStorage(ERROR_KEY, null);
 
                   //revert the window location to what it was before the token request
                  if (window.location.href != location) {
@@ -172,12 +188,12 @@
                   var resource = getFromStorageByState(state, RESOURCE_KEY);
                   var errorDescr = urlParameterExtraction.queryStringParameters['error_description'];
 
-                  // check for authorizatoin error
-                  var location1 = getFromStorageByState(state, LOCATION_KEY);
-
-                  saveToStorage(ERROR_KEY, error + ' ' + errorDescr)
+           		  saveToStorage(ERROR_KEY, error + ' ' + errorDescr)
+                  
                   console.log('error: ' + error);
                   console.log('error description:' + errorDescr);
+              } else {
+              	  joauth.clearError();
               }
           }
       
