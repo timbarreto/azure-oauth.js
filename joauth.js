@@ -165,8 +165,8 @@
                   saveToStorage(ERROR_KEY, null);
 
                   //revert the window location to what it was before the token request
-                 if (window.location !== location) {
-                 	window.location = location;
+                 if (window.location.href != location) {
+                	window.location = location;
                  }
               } else if (error && state) {
                   var resource = getFromStorageByState(state, RESOURCE_KEY);
