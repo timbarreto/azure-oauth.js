@@ -1,4 +1,4 @@
-(function (window) {
+﻿(function (window) {
     'use strict';
 
     function define_joauth() {
@@ -10,6 +10,7 @@
         var ERROR_KEY = 'Error';
 
         var useLocalStorageProp = true;
+        var redirectPendingProp = false;
         
         //private
         var saveToStorage = function (key, value) {
@@ -115,7 +116,7 @@
                     return token;
                 }
             }
-
+            
             var uuid = guid();
             saveToStorageByState(uuid, RESOURCE_KEY, appIdUri);
             saveToStorageByState(uuid, LOCATION_KEY, window.location);
@@ -130,18 +131,23 @@
                 "state=" + encodeURI(uuid) + "&" +
                 "redirect_uri=" + encodeURI(redirectUri);
 
-            window.location = url;
+			if (redirectPendingProp === false) {
+            	redirectPendingProp = true;
+            	window.location = url;
+            }
 
             return null;
         }
 
         joauth.processOAuthRedirect = function () {
+              redirectPendingProp = false;
               // Extract token from urlParameterExtraction object.
               var token = urlParameterExtraction.queryStringParameters['access_token'];
               var state = urlParameterExtraction.queryStringParameters['state'];
               var error = urlParameterExtraction.queryStringParameters['error'];
 
               if (token && state) {
+              	  
                   var resource = getFromStorageByState(state, RESOURCE_KEY);
                   var location = getFromStorageByState(state, LOCATION_KEY);
 
@@ -159,7 +165,9 @@
                   saveToStorage(ERROR_KEY, null);
 
                   //revert the window location to what it was before the token request
-                  window.location = location;
+                 if (window.location !== location) {
+                 	window.location = location;
+                 }
               } else if (error && state) {
                   var resource = getFromStorageByState(state, RESOURCE_KEY);
                   var errorDescr = urlParameterExtraction.queryStringParameters['error_description'];
@@ -185,5 +193,5 @@
     }
 
     joauth.processOAuthRedirect();
-
+    
 })(window);
