@@ -8,43 +8,19 @@
         var LOCATION_KEY = 'Location';
         var EXPIRES_KEY = 'Expires';
         var ERROR_KEY = 'Error';
+        var APP_KEY = 'AppIdUri';
 
-        var useLocalStorageProp = true;
         var redirectPendingProp = false;
         
         //private
         var saveToStorage = function (key, value) {
-            if (useLocalStorageProp === true) {
-                try {
-                    localStorage.setItem(key, value);
-                } catch (ex) {
-                    throw ex;
-                }
-            } else {
-                try {
-                    sessionStorage.setItem(key, value);
-                } catch (ex) {
-                    throw ex;
-                }
-            }
-        }
+        	store.set(key, value);
+       	}
 
         var getFromStorage = function (key) {
-            if (useLocalStorageProp === true) {
-                try {
-                    return localStorage.getItem(key);
-                } catch (ex) {
-                    throw ex;
-                }
-            } else {
-                try {
-                    return sessionStorage.getItem(key);
-                } catch (ex) {
-                    throw ex;
-                }
-            }
+        	return store.get(key);    
         }
-
+        
         var saveToStorageByState = function (state, key, value) {
             saveToStorage(state + "-" + key, value);
         }
@@ -91,38 +67,63 @@
         })();
 
 		var getTokenFromStorage = function(appIdUri) {
-			var token = getFromStorage(appIdUri);
-            if (token === "null") {
-                return null;
-            }
+			return getFromStorage(appIdUri);
+       	};
+		
+		var saveError = function (appIdUri, error) {
+             saveToStorage(ERROR_KEY + appIdUri, error);
+        }
 
-            return token;
-		};
+		var addApp = function (appIdUri) {
+			var apps = getFromStorage('apps');
+			
+			if (!apps) {
+				apps = [appIdUri];
+			} else {
+				// add to existing array
+				var found = false;
+				var i = 0;
+				for	(i = 0; i < apps.length; i++) {
+					if (apps[i] == appIdUri) {
+						found = true;
+						break;
+					}    			
+				}
+				
+				if (found === false) {
+					apps[apps.length] = appIdUri;
+				}
+			}
+		
+			saveToStorage('apps', apps);	
+		}
 
         //public
-        joauth.setUseLocalStorage = function(useLocalStorage) {
-            useLocalStorageProp = useLocalStorage;
-        }
-
-        joauth.getError = function () {
-            var error = getFromStorage(ERROR_KEY);
-            if (error === "null") {
-                return null;
-            }
-
-            return error;
+        joauth.getError = function (appIdUri) {
+            return getFromStorage(ERROR_KEY + appIdUri);
+      	}
+        
+        joauth.clearError = function (appIdUri) {
+			saveToStorage(ERROR_KEY + appIdUri, null);
+		}
+        
+        joauth.clearErrors = function () {
+        	var apps = getFromStorage('apps');
+			if (apps) {
+				var i = 0;
+				for	(i = 0; i < apps.length; i++) {
+					joauth.clearError(apps[i]);
+				}
+			}
         }
         
-        joauth.clearError = function () {
-             saveToStorage(ERROR_KEY, null);
-        }
-
-
         joauth.getAccessToken = function (authEndpointUri, appIdUri, clientId, redirectUri) {
             console.log('clientId: ' + clientId);
             console.log('redirectUri: ' + redirectUri);
 
-			var error = joauth.getError();
+			addApp(appIdUri);
+
+			var error = joauth.getError(appIdUri);
 			if (error){
 				return null;
 			}
@@ -138,7 +139,8 @@
             
             var uuid = guid();
             saveToStorageByState(uuid, RESOURCE_KEY, appIdUri);
-            saveToStorageByState(uuid, LOCATION_KEY, window.location);
+            saveToStorageByState(uuid, LOCATION_KEY, window.location.href);
+			saveToStorageByState(uuid, APP_KEY, appIdUri);
 
             console.log('redirectUri: ' + redirectUri);
 
@@ -165,8 +167,7 @@
               var state = urlParameterExtraction.queryStringParameters['state'];
               var error = urlParameterExtraction.queryStringParameters['error'];
 
-              if (token && state) {
-              	  
+              if (token && state) {       	  
                   var resource = getFromStorageByState(state, RESOURCE_KEY);
                   var location = getFromStorageByState(state, LOCATION_KEY);
 
@@ -187,18 +188,24 @@
               } else if (error && state) {
                   var resource = getFromStorageByState(state, RESOURCE_KEY);
                   var errorDescr = urlParameterExtraction.queryStringParameters['error_description'];
+				  var app = getFromStorageByState(state, APP_KEY);
 
-           		  saveToStorage(ERROR_KEY, error + ' ' + errorDescr)
+           		  saveError(app, error + ' ' + errorDescr)
                   
                   console.log('error: ' + error);
                   console.log('error description:' + errorDescr);
               } else {
-              	  joauth.clearError();
+              	  joauth.clearErrors();
               }
           }
       
         return joauth;
     }
+    
+   	if (!store.enabled) {
+     	alert('Local storage is not supported by your browser. Please disable "Private Mode", or upgrade to a modern browser.')
+       	return;
+  	}
 
     //define globally if it doesn't already exist
     if (typeof (joauth) === 'undefined') {
