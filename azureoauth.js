@@ -1,8 +1,8 @@
 ﻿(function (window) {
     'use strict';
 
-    function define_joauth() {
-        var joauth = {};
+    function define_azureoauth() {
+        var azureoauth = {};
 
         var RESOURCE_KEY = 'Resource';
         var LOCATION_KEY = 'Location';
@@ -99,15 +99,15 @@
 		}
 
         //public
-        joauth.getError = function (appIdUri) {
+        azureoauth.getError = function (appIdUri) {
             return getFromStorage(ERROR_KEY + appIdUri);
       	}
         
-        joauth.clearError = function (appIdUri) {
+        azureoauth.clearError = function (appIdUri) {
 			saveToStorage(ERROR_KEY + appIdUri, null);
 		}
         
-        joauth.clearErrors = function () {
+        azureoauth.clearErrors = function () {
         	var apps = getFromStorage('apps');
 			if (apps) {
 				var i = 0;
@@ -117,7 +117,7 @@
 			}
         }
         
-        joauth.getAccessToken = function (authEndpointUri, appIdUri, clientId, redirectUri) {
+        azureoauth.getAccessToken = function (authEndpointUri, appIdUri, clientId, redirectUri) {
             console.log('clientId: ' + clientId);
             console.log('redirectUri: ' + redirectUri);
 
@@ -160,7 +160,7 @@
             return null;
         }
 
-        joauth.processOAuthRedirect = function () {
+        azureoauth.processOAuthRedirect = function () {
               redirectPendingProp = false;
               // Extract token from urlParameterExtraction object.
               var token = urlParameterExtraction.queryStringParameters['access_token'];
@@ -208,13 +208,13 @@
   	}
 
     //define globally if it doesn't already exist
-    if (typeof (joauth) === 'undefined') {
-        window.joauth = define_joauth();
+    if (typeof (azureoauth) === 'undefined') {
+        window.azureoauth = define_azureoauth();
     }
     else {
-        console.log("joauth already defined.");
+        console.log("azureoauth is already defined.");
     }
 
-    joauth.processOAuthRedirect();
+    azureoauth.processOAuthRedirect();
     
 })(window);
