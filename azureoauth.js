@@ -112,7 +112,7 @@
 			if (apps) {
 				var i = 0;
 				for	(i = 0; i < apps.length; i++) {
-					joauth.clearError(apps[i]);
+					azureoauth.clearError(apps[i]);
 				}
 			}
         }
@@ -123,7 +123,7 @@
 
 			addApp(appIdUri);
 
-			var error = joauth.getError(appIdUri);
+			var error = azureoauth.getError(appIdUri);
 			if (error){
 				return null;
 			}
@@ -195,11 +195,11 @@
                   console.log('error: ' + error);
                   console.log('error description:' + errorDescr);
               } else {
-              	  joauth.clearErrors();
+              	  azureoauth.clearErrors();
               }
           }
       
-        return joauth;
+        return azureoauth;
     }
     
    	if (!store.enabled) {
